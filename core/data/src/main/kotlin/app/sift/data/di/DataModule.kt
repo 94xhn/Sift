@@ -10,7 +10,9 @@ import app.sift.data.repository.NoteRepositoryImpl
 import app.sift.data.repository.SettingsRepositoryImpl
 import app.sift.data.repository.UsageRepositoryImpl
 import app.sift.domain.agent.CaptureAgent
+import app.sift.domain.agent.SearchSimilarTool
 import app.sift.domain.agent.SiftJson
+import app.sift.domain.agent.Tool
 import app.sift.domain.llm.LLMProvider
 import app.sift.domain.repository.NoteRepository
 import app.sift.domain.repository.SettingsRepository
@@ -65,10 +67,20 @@ object DataModule {
     @Singleton
     fun provideIdProvider(): IdProvider = IdProvider { UUID.randomUUID().toString() }
 
+    /** agent 注册的工具集。当前：search_similar（查重/关联，RAG-lite）。 */
     @Provides
     @Singleton
-    fun provideCaptureAgent(clock: Clock, idProvider: IdProvider, json: Json): CaptureAgent =
-        CaptureAgent(clock, idProvider, json)
+    fun provideAgentTools(noteRepository: NoteRepository, json: Json): List<Tool> =
+        listOf(SearchSimilarTool(noteRepository, json))
+
+    @Provides
+    @Singleton
+    fun provideCaptureAgent(
+        clock: Clock,
+        idProvider: IdProvider,
+        tools: List<Tool>,
+        json: Json,
+    ): CaptureAgent = CaptureAgent(clock = clock, idProvider = idProvider, tools = tools, json = json)
 }
 
 @Module

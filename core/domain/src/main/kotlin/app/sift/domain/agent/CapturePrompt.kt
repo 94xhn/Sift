@@ -3,13 +3,21 @@ package app.sift.domain.agent
 /** 集中管理 Capture Agent 的提示词，便于单独迭代与审查。 */
 object CapturePrompt {
 
-    fun system(knownCategories: List<String>): String {
+    fun system(knownCategories: List<String>, hasTools: Boolean = false): String {
         val categoryHint = if (knownCategories.isEmpty()) {
             "用户暂无已有分类，你可自拟一个简洁的分类名。"
         } else {
             "用户已有分类如下，尽量复用、保持一致，不要轻易新造：" +
                 knownCategories.joinToString("、")
         }
+        val toolHint = if (!hasTools) "" else """
+
+            【可用工具】你有一个工具 search_similar(query)，能按关键词检索用户已有的笔记。
+            可选地先用它判断：当前内容是否与既有笔记明显重复？有没有主题相关的旧笔记？
+            - 若与某条已有笔记明显重复，可直接 keep=false，并在 reason 注明"与已有笔记重复"。
+            - 归类时优先复用检索到的既有分类，保持一致。
+            用完工具（或不需要用）后，再输出最终 JSON。
+        """.trimIndent().let { "\n$it" }
         return """
             你是 Sift —— 帮用户把"看到但懒得细读"的内容快速沉淀成笔记的助手。
             用户【主动】点击截了这张图，说明他想要这屏【内容】的总结。
@@ -26,6 +34,7 @@ object CapturePrompt {
             - 信息稀薄（纯娱乐视频画面 / 风景 / 自拍，没什么可学的）：summary 一句话点明
               "这是什么画面"即可，key_points 留空或仅 1 条，并在 reason 注明"画面信息有限"。
               【严禁】靠罗列界面元素来硬凑要点。
+            $toolHint
 
             $categoryHint
 

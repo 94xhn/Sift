@@ -18,10 +18,11 @@
 ## v0.2 — 真 Agent + 诚实仪表盘
 
 - [x] 诚实仪表盘：UsageStats 时长 vs 沉淀数 vs 利用率 + `HonestNudge` 劝退逻辑
-- [ ] `CaptureAgent` 升级为真正的多轮 tool-use 循环（decide_keep / search_similar / relate…）
-- [ ] 本地查重（关键词 → 后续嵌入向量）
-- [ ] 知识图谱：`NoteRelation` 建边 + 关联展示
+- [x] `CaptureAgent` 升级为真正的多轮 tool-use 循环（有界步数，已接入 search_similar）
+- [x] 本地查重（关键词检索 search_similar）；嵌入向量语义检索留 v0.3
+- [ ] 知识图谱：`NoteRelation` 建边 + 关联展示（让 relate 工具落库）
 - [ ] `AnthropicProvider`（Claude tool-use）
+- [ ] RAG 向量升级：embedding + 余弦 Top-K（替代关键词检索）
 
 ## v0.3 — 回看与传播
 

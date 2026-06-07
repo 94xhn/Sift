@@ -27,6 +27,19 @@ interface NoteDao {
     @Query("SELECT DISTINCT category FROM notes WHERE category != '' ORDER BY category")
     suspend fun categories(): List<String>
 
+    @Query(
+        """
+        SELECT * FROM notes
+        WHERE title LIKE '%' || :q || '%'
+           OR summary LIKE '%' || :q || '%'
+           OR category LIKE '%' || :q || '%'
+           OR tags LIKE '%' || :q || '%'
+        ORDER BY createdAt DESC
+        LIMIT :limit
+        """,
+    )
+    suspend fun search(q: String, limit: Int): List<NoteEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addRelation(relation: NoteRelationEntity)
 

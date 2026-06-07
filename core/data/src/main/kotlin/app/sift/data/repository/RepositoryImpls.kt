@@ -35,6 +35,9 @@ class NoteRepositoryImpl @Inject constructor(
     override suspend fun markReviewed(id: String, at: Long) = dao.markReviewed(id, at)
     override suspend fun knownCategories(): List<String> = dao.categories()
 
+    override suspend fun searchNotes(query: String, limit: Int): List<KnowledgeNote> =
+        dao.search(query.trim(), limit).map { it.toDomain() }
+
     override suspend fun addRelation(relation: NoteRelation) = dao.addRelation(relation.toEntity())
     override suspend fun relationsOf(noteId: String): List<NoteRelation> =
         dao.relationsOf(noteId).map { it.toDomain() }

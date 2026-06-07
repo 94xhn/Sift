@@ -19,6 +19,7 @@
 - CI：GitHub Actions（domain 单测 + gitleaks），README 加 CI / MIT 徽章。
 - 提示词升级：明确忽略状态栏/导航栏/平台 logo 等界面家具，只总结内容主体；按"知识密度"调整详略（知识密集多抽要点，信息稀薄不硬凑）。
 - UI 统一：全 App 改用原生顶栏返回箭头（`SiftScaffold`），去掉底部"返回"大按钮；笔记详情页标签改 Chip + 显示时间/来源 + 删除按钮；设置页占位符改为推荐的免费 GLM-4.6V-Flash。
+- **真 tool-use Agent**：`CaptureAgent` 升级为多轮工具调用循环（有界 maxSteps）。模型可自主调用 `search_similar` 工具检索用户已有笔记（RAG-lite，关键词检索），据此查重/保持归类一致后再产出最终笔记。`OpenAICompatibleProvider` 支持发送 `tools`、解析 `tool_calls`、编码 assistant.tool_calls / role=tool 消息。新增循环单测。无工具时自动退化为单次调用（向后兼容）。
 
 ### Fixed
 - `:core:domain` 模块 Kotlin/Java target 不一致（21 vs 17）导致编译失败：显式设 Kotlin `jvmTarget = 17`。
