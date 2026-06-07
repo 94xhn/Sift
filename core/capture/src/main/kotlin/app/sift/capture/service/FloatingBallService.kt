@@ -120,19 +120,29 @@ class FloatingBallService : Service() {
 
         acknowledgeTap()
         if (holder.isActive) {
-            // 已授权：直接复用 projection 抓帧，不打扰用户
-            ContextCompat.startForegroundService(
-                this,
-                ScreenCaptureService.captureIntent(this, sourceApp = null),
-            )
+            // 已授权：先把悬浮球藏起来再抓帧，避免相机图标被拍进截图
+            captureWithBallHidden()
         } else {
-            // 首次：拉起透明 Activity 申请投屏授权
+            // 首次：拉起透明 Activity 申请投屏授权（捕获时机由用户在弹窗决定，不做隐藏舞蹈）
             startActivity(
                 Intent(CaptureCoordinator.ACTION_TRIGGER_CAPTURE)
                     .setPackage(packageName)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
         }
+    }
+
+    /** 隐藏悬浮球 → 等它从画面消失 → 抓帧（拿无球的新鲜帧）→ 稍后恢复球。 */
+    private fun captureWithBallHidden() {
+        val v = ballView ?: run {
+            ContextCompat.startForegroundService(this, ScreenCaptureService.captureIntent(this, null))
+            return
+        }
+        v.visibility = View.INVISIBLE
+        v.postDelayed({
+            ContextCompat.startForegroundService(this, ScreenCaptureService.captureIntent(this, null))
+        }, BALL_HIDE_DELAY_MS)
+        v.postDelayed({ ballView?.visibility = View.VISIBLE }, BALL_RESTORE_DELAY_MS)
     }
 
     /** 点击即时反馈：震动 + 缩放动画 + Toast，让用户知道点到了（分析结果稍后由通知给出）。 */
@@ -171,5 +181,7 @@ class FloatingBallService : Service() {
         private const val CHANNEL_ID = "sift_floating_ball"
         private const val CLICK_SLOP = 12 // px，超过视为拖动
         private const val MIN_TAP_INTERVAL_MS = 2000L // 防抖，避免连点撞免费档限流
+        private const val BALL_HIDE_DELAY_MS = 120L // 藏球后等渲染再抓帧
+        private const val BALL_RESTORE_DELAY_MS = 700L // 抓帧后恢复球（留足余量）
     }
 }

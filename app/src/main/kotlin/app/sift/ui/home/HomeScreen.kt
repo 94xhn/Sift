@@ -27,7 +27,9 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.sift.capture.CaptureProcessor
 import app.sift.capture.service.FloatingBallService
+import app.sift.domain.model.CaptureResult
 import app.sift.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,9 +39,12 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     settings: SettingsRepository,
+    captureProcessor: CaptureProcessor,
 ) : ViewModel() {
     val configured = settings.observeConfigured()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val lastResult = captureProcessor.lastResult
 }
 
 @Composable
@@ -51,6 +56,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val configured by vm.configured.collectAsState()
+    val lastResult by vm.lastResult.collectAsState()
 
     Column(
         modifier = Modifier
@@ -74,6 +80,20 @@ fun HomeScreen(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Button(onClick = onOpenSettings) { Text("API 设置") }
+            }
+        }
+
+        lastResult?.let { r ->
+            val (label, detail) = when (r) {
+                is CaptureResult.Kept -> "✅ 最近已沉淀" to r.note.title
+                is CaptureResult.Discarded -> "↪️ 最近已忽略" to r.reason
+                is CaptureResult.Failed -> "⚠️ 最近处理失败" to r.error
+            }
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(label, style = MaterialTheme.typography.titleSmall)
+                    Text(detail, style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
 

@@ -18,8 +18,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -43,6 +46,10 @@ class CaptureProcessor @Inject constructor(
 
     private val _events = MutableSharedFlow<CaptureResult>(extraBufferCapacity = 8)
     val events: SharedFlow<CaptureResult> = _events.asSharedFlow()
+
+    /** 保留最近一次结果，供 UI 在用户回到 App 后展示（通知被吞也能看到）。 */
+    private val _lastResult = MutableStateFlow<CaptureResult?>(null)
+    val lastResult: StateFlow<CaptureResult?> = _lastResult.asStateFlow()
 
     @Volatile
     private var started = false
@@ -105,7 +112,10 @@ class CaptureProcessor @Inject constructor(
         emit(result)
     }
 
-    private suspend fun emit(result: CaptureResult) = _events.emit(result)
+    private suspend fun emit(result: CaptureResult) {
+        _lastResult.value = result
+        _events.emit(result)
+    }
 
     private fun notify(title: String, body: String) {
         val nm = context.getSystemService(NotificationManager::class.java)

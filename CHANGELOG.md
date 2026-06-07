@@ -15,6 +15,8 @@
 - 打开笔记即记为"已回看"，喂给利用率指标。
 - **手动捕获默认总结、不再二次过滤**：既然每次都是用户主动点球，agent 默认 keep=true 出总结（仅纯空白页才跳过），直接服务"长文懒得读、要 AI 总结"的诉求；"会筛/会拒绝"的过滤智能留给未来的自动捕获模式。
 - 运行时申请 POST_NOTIFICATIONS（否则结果通知/Toast 被静默吞掉）；悬浮球加 2s 防抖避免撞免费档限流；OkHttp 读/写超时放宽到 60s（视觉模型慢）；捕获管线加 Logcat 日志（tag SiftCapture）。
+- 体验打磨：截图前自动隐藏悬浮球（抓"下一帧"无球的新鲜帧，静止画面 400ms 兜底用缓存）；主屏显示"最近捕获结果"卡片（通知被吞也能看到）。
+- CI：GitHub Actions（domain 单测 + gitleaks），README 加 CI / MIT 徽章。
 
 ### Fixed
 - `:core:domain` 模块 Kotlin/Java target 不一致（21 vs 17）导致编译失败：显式设 Kotlin `jvmTarget = 17`。

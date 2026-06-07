@@ -161,16 +161,14 @@ class ScreenCaptureService : Service() {
 
     private fun requestCapture(sourceApp: String?) {
         pendingSourceApp = sourceApp
-        bgHandler.post {
-            val bmp = latestBitmap
-            if (bmp != null) {
-                // 立即用最近一帧位图发图——静止画面也能稳定触发
-                publishBitmap(bmp)
-            } else {
-                // 镜像刚建立、第一帧还没到，挂起请求让监听器补发
-                captureRequested.set(true)
+        // 优先抓"下一帧"——这样隐藏悬浮球后拿到的是无球的新鲜帧；
+        // 若画面完全静止、FRESH_FRAME_FALLBACK_MS 内没有新帧，则用缓存帧兜底。
+        captureRequested.set(true)
+        bgHandler.postDelayed({
+            if (captureRequested.compareAndSet(true, false)) {
+                latestBitmap?.let { publishBitmap(it) }
             }
-        }
+        }, FRESH_FRAME_FALLBACK_MS)
     }
 
     /** 把一帧位图编码成 base64 发出去。 */
@@ -226,6 +224,7 @@ class ScreenCaptureService : Service() {
         private const val CHANNEL_ID = "sift_capture"
         private const val MAX_DIM = 1280 // 下采样上限，省 token + 加速
         private const val CONVERT_THROTTLE_MS = 300L // 镜像帧转 Bitmap 的节流，省 CPU
+        private const val FRESH_FRAME_FALLBACK_MS = 400L // 等不到新帧（静止画面）就用缓存帧兜底
 
         const val ACTION_INIT = "app.sift.capture.action.INIT"
         const val ACTION_CAPTURE = "app.sift.capture.action.CAPTURE"
