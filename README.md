@@ -5,6 +5,9 @@
 **刷到的好东西，别让它划走就丢了。**
 A local-first personal knowledge **agent** for the age of endless scrolling.
 
+[![CI](https://github.com/94xhn/Sift/actions/workflows/ci.yml/badge.svg)](https://github.com/94xhn/Sift/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 </div>
 
 ---
