@@ -83,7 +83,7 @@ object DataModule {
     fun provideCaptureAgent(
         clock: Clock,
         idProvider: IdProvider,
-        tools: List<Tool>,
+        tools: List<@JvmSuppressWildcards Tool>,
         json: Json,
     ): CaptureAgent = CaptureAgent(clock = clock, idProvider = idProvider, tools = tools, json = json)
 }
