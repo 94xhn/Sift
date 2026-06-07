@@ -24,6 +24,12 @@ interface NoteDao {
     @Query("UPDATE notes SET reviewCount = reviewCount + 1, lastReviewedAt = :at WHERE id = :id")
     suspend fun markReviewed(id: String, at: Long)
 
+    @Query("UPDATE notes SET embedding = :embedding WHERE id = :id")
+    suspend fun updateEmbedding(id: String, embedding: ByteArray)
+
+    @Query("SELECT * FROM notes WHERE embedding IS NOT NULL")
+    suspend fun allWithEmbedding(): List<NoteEntity>
+
     @Query("SELECT DISTINCT category FROM notes WHERE category != '' ORDER BY category")
     suspend fun categories(): List<String>
 

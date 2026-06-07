@@ -6,10 +6,12 @@ import android.content.Context
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import app.sift.domain.agent.CaptureAgent
+import app.sift.domain.llm.EmbeddingProvider
 import app.sift.domain.llm.LLMProvider
 import app.sift.domain.llm.LlmConfig
 import app.sift.domain.model.CaptureRequest
 import app.sift.domain.model.CaptureResult
+import app.sift.domain.model.KnowledgeNote
 import app.sift.domain.model.NoteRelation
 import app.sift.domain.repository.NoteRepository
 import app.sift.domain.repository.SettingsRepository
@@ -44,6 +46,7 @@ class CaptureProcessor @Inject constructor(
     private val usage: UsageRepository,
     private val settings: SettingsRepository,
     private val idProvider: IdProvider,
+    private val embeddings: EmbeddingProvider,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -98,6 +101,7 @@ class CaptureProcessor @Inject constructor(
                 Log.i(TAG, "KEPT: ${result.note.title}, related=${result.relatedNoteIds}")
                 notes.upsert(result.note)
                 linkRelated(result.note.id, result.relatedNoteIds)
+                embedNote(result.note, key)
                 usage.recordCapture(today, kept = true)
                 notify("已沉淀：${result.note.title}", result.note.summary)
             }
@@ -114,6 +118,22 @@ class CaptureProcessor @Inject constructor(
             }
         }
         emit(result)
+    }
+
+    /** 计算并存入笔记 embedding（RAG 语义检索用）；失败仅记日志，不影响主流程。 */
+    private suspend fun embedNote(note: KnowledgeNote, apiKey: String) {
+        runCatching {
+            val text = buildString {
+                append(note.title)
+                if (note.summary.isNotBlank()) {
+                    append('\n'); append(note.summary)
+                }
+                note.keyPoints.forEach { append('\n'); append(it) }
+            }
+            val cfg = LlmConfig(settings.getBaseUrl(), apiKey, settings.getEmbeddingModel())
+            embeddings.embed(listOf(text), cfg).firstOrNull()
+                ?.let { notes.updateEmbedding(note.id, it) }
+        }.onFailure { Log.w(TAG, "embedding failed (ignored): ${it.message}") }
     }
 
     /** 为新笔记与 agent 给出的相关旧笔记建立知识图谱的边（只连真实存在的笔记）。 */

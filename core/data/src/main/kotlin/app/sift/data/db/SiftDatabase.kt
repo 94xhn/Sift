@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 
 @Database(
     entities = [NoteEntity::class, NoteRelationEntity::class, DailyUsageEntity::class],
-    version = 1,
+    version = 2, // v2: notes 增加 embedding 列（RAG）
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

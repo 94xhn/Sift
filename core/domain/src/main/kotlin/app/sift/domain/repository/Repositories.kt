@@ -16,8 +16,11 @@ interface NoteRepository {
     /** 已有分类去重列表，喂给 agent 做归类一致性提示。 */
     suspend fun knownCategories(): List<String>
 
-    /** 关键词检索已有笔记（供 agent 的 search_similar 工具做查重/关联，即 RAG-lite 检索）。 */
+    /** 检索已有笔记（供 agent 的 search_similar 工具做查重/关联）。实现优先语义检索，失败降级关键词。 */
     suspend fun searchNotes(query: String, limit: Int = 5): List<KnowledgeNote>
+
+    /** 写入某条笔记的 embedding 向量（RAG 语义检索用）。 */
+    suspend fun updateEmbedding(id: String, vector: FloatArray)
 
     // 知识图谱（v0.2 起用）
     suspend fun addRelation(relation: NoteRelation)
@@ -38,6 +41,8 @@ interface SettingsRepository {
     suspend fun getProviderId(): String
     suspend fun getBaseUrl(): String
     suspend fun getModel(): String
+    /** 嵌入模型名（语义检索用）。默认智谱 embedding-3。 */
+    suspend fun getEmbeddingModel(): String
     suspend fun getApiKey(): String?
     suspend fun save(providerId: String, baseUrl: String, model: String, apiKey: String)
 }

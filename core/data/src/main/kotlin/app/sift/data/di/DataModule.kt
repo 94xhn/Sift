@@ -6,6 +6,8 @@ import app.sift.data.db.NoteDao
 import app.sift.data.db.SiftDatabase
 import app.sift.data.db.UsageDao
 import app.sift.data.llm.OpenAICompatibleProvider
+import app.sift.data.llm.OpenAiEmbeddingProvider
+import app.sift.domain.llm.EmbeddingProvider
 import app.sift.data.repository.NoteRepositoryImpl
 import app.sift.data.repository.SettingsRepositoryImpl
 import app.sift.data.repository.UsageRepositoryImpl
@@ -51,7 +53,10 @@ object DataModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): SiftDatabase =
-        Room.databaseBuilder(context, SiftDatabase::class.java, "sift.db").build()
+        Room.databaseBuilder(context, SiftDatabase::class.java, "sift.db")
+            // 早期开发：schema 变更直接重建（笔记是可丢的测试数据）。上线前再写正式 Migration。
+            .fallbackToDestructiveMigration()
+            .build()
 
     @Provides
     fun provideNoteDao(db: SiftDatabase): NoteDao = db.noteDao()
@@ -102,4 +107,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindLlmProvider(impl: OpenAICompatibleProvider): LLMProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindEmbeddingProvider(impl: OpenAiEmbeddingProvider): EmbeddingProvider
 }

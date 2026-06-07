@@ -16,6 +16,8 @@ data class NoteEntity(
     val rawImagePath: String?,
     val reviewCount: Int,
     val lastReviewedAt: Long?,
+    /** 笔记内容的 embedding 向量（小端 Float BLOB），用于 RAG 语义检索；可为空。 */
+    val embedding: ByteArray? = null,
 )
 
 @Entity(tableName = "note_relations")
