@@ -32,7 +32,7 @@ class CaptureAgent(
     private val idProvider: IdProvider,
     private val tools: List<Tool> = emptyList(),
     private val json: Json = SiftJson,
-    private val maxSteps: Int = 4,
+    private val maxSteps: Int = 3,
 ) {
     suspend fun run(
         request: CaptureRequest,
@@ -50,15 +50,17 @@ class CaptureAgent(
             ),
         )
 
-        repeat(maxSteps) {
+        repeat(maxSteps) { step ->
+            // 最后一步【不给工具】，逼模型必须给出最终 JSON——否则有些模型会无限调工具不收尾。
+            val lastStep = step == maxSteps - 1
             val response = try {
-                provider.chat(messages, toolSpecs, config)
+                provider.chat(messages, if (lastStep) emptyList() else toolSpecs, config)
             } catch (e: Exception) {
                 return CaptureResult.Failed(e.message ?: "LLM 调用失败")
             }
 
-            if (response.toolCalls.isNotEmpty()) {
-                // 模型要调工具：把它的 assistant 消息（带 tool_calls）和每个工具结果塞回对话，继续循环
+            if (!lastStep && response.toolCalls.isNotEmpty()) {
+                // 模型要调工具：把 assistant 消息（带 tool_calls）和每个工具结果塞回对话，继续循环
                 messages.add(
                     ChatMessage(role = Role.ASSISTANT, text = response.text, toolCalls = response.toolCalls),
                 )
@@ -71,8 +73,13 @@ class CaptureAgent(
                 return@repeat // 进入下一轮
             }
 
-            // 没有工具调用 → 这是最终回答
-            val raw = response.text ?: return CaptureResult.Failed("模型未返回文本")
+            val raw = response.text
+            if (raw.isNullOrBlank()) {
+                if (lastStep) return CaptureResult.Failed("模型未给出结论")
+                // 既没调工具也没出文本（少见）：明确追问一次，逼它输出最终 JSON
+                messages.add(ChatMessage.user("请基于以上信息直接输出最终 JSON，不要再调用工具。"))
+                return@repeat
+            }
             return finalize(raw, request)
         }
 
