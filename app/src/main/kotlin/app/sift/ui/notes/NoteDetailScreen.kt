@@ -1,16 +1,19 @@
 package app.sift.ui.notes
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,11 +48,22 @@ class NoteDetailViewModel @Inject constructor(
     var note by mutableStateOf<KnowledgeNote?>(null)
         private set
 
+    /** 知识图谱：与本条相关联的其它笔记。 */
+    var related by mutableStateOf<List<KnowledgeNote>>(emptyList())
+        private set
+
     init {
         viewModelScope.launch {
             note = repo.getNote(id)
-            // 打开即视为"回看过一次"——喂给诚实仪表盘的利用率
-            if (note != null) repo.markReviewed(id, System.currentTimeMillis())
+            if (note != null) {
+                // 打开即视为"回看过一次"——喂给诚实仪表盘的利用率
+                repo.markReviewed(id, System.currentTimeMillis())
+                // 加载关联的笔记（边的另一端）
+                val otherIds = repo.relationsOf(id)
+                    .map { if (it.fromNoteId == id) it.toNoteId else it.fromNoteId }
+                    .distinct()
+                related = otherIds.mapNotNull { repo.getNote(it) }
+            }
         }
     }
 
@@ -65,6 +79,7 @@ class NoteDetailViewModel @Inject constructor(
 @Composable
 fun NoteDetailScreen(
     onBack: () -> Unit,
+    onOpenNote: (String) -> Unit,
     vm: NoteDetailViewModel = hiltViewModel(),
 ) {
     val note = vm.note
@@ -118,6 +133,23 @@ fun NoteDetailScreen(
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     note.tags.forEach { tag ->
                         AssistChip(onClick = {}, label = { Text(tag) })
+                    }
+                }
+            }
+
+            if (vm.related.isNotEmpty()) {
+                Text("相关笔记", style = MaterialTheme.typography.titleMedium)
+                vm.related.forEach { rel ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenNote(rel.id) },
+                    ) {
+                        Text(
+                            "🔗 ${rel.title}",
+                            modifier = Modifier.padding(12.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                     }
                 }
             }

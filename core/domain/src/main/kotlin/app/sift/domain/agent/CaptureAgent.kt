@@ -100,7 +100,12 @@ class CaptureAgent(
             tags = decision.tags.orEmpty().map { it.trim() }.filter { it.isNotEmpty() },
             sourceApp = request.sourceApp,
         )
-        return CaptureResult.Kept(note)
+        return CaptureResult.Kept(
+            note = note,
+            relatedNoteIds = decision.relatedNoteIds.orEmpty()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() },
+        )
     }
 
     companion object {

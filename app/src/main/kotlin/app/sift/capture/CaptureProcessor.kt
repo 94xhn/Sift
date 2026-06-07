@@ -10,9 +10,11 @@ import app.sift.domain.llm.LLMProvider
 import app.sift.domain.llm.LlmConfig
 import app.sift.domain.model.CaptureRequest
 import app.sift.domain.model.CaptureResult
+import app.sift.domain.model.NoteRelation
 import app.sift.domain.repository.NoteRepository
 import app.sift.domain.repository.SettingsRepository
 import app.sift.domain.repository.UsageRepository
+import app.sift.domain.util.IdProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +43,7 @@ class CaptureProcessor @Inject constructor(
     private val notes: NoteRepository,
     private val usage: UsageRepository,
     private val settings: SettingsRepository,
+    private val idProvider: IdProvider,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -92,8 +95,9 @@ class CaptureProcessor @Inject constructor(
         val today = LocalDate.now().toString()
         when (result) {
             is CaptureResult.Kept -> {
-                Log.i(TAG, "KEPT: ${result.note.title}")
+                Log.i(TAG, "KEPT: ${result.note.title}, related=${result.relatedNoteIds}")
                 notes.upsert(result.note)
+                linkRelated(result.note.id, result.relatedNoteIds)
                 usage.recordCapture(today, kept = true)
                 notify("已沉淀：${result.note.title}", result.note.summary)
             }
@@ -110,6 +114,22 @@ class CaptureProcessor @Inject constructor(
             }
         }
         emit(result)
+    }
+
+    /** 为新笔记与 agent 给出的相关旧笔记建立知识图谱的边（只连真实存在的笔记）。 */
+    private suspend fun linkRelated(noteId: String, relatedIds: List<String>) {
+        relatedIds.distinct().filter { it != noteId }.forEach { otherId ->
+            if (notes.getNote(otherId) != null) {
+                notes.addRelation(
+                    NoteRelation(
+                        id = idProvider.newId(),
+                        fromNoteId = noteId,
+                        toNoteId = otherId,
+                        reason = "由 agent 关联",
+                    ),
+                )
+            }
+        }
     }
 
     private suspend fun emit(result: CaptureResult) {

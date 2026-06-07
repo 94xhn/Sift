@@ -16,4 +16,6 @@ data class AgentDecision(
     @SerialName("key_points") val keyPoints: List<String>? = null,
     val category: String? = null,
     val tags: List<String>? = null,
+    /** 模型从 search_similar 结果里挑出的、与本条相关的既有笔记 id（用于建知识图谱的边）。 */
+    @SerialName("related_note_ids") val relatedNoteIds: List<String>? = null,
 )

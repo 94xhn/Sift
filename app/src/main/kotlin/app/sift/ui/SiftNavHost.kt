@@ -43,7 +43,10 @@ fun SiftNavHost() {
             )
         }
         composable(Routes.NOTE_DETAIL) {
-            NoteDetailScreen(onBack = { nav.popBackStack() })
+            NoteDetailScreen(
+                onBack = { nav.popBackStack() },
+                onOpenNote = { id -> nav.navigate(Routes.noteDetail(id)) },
+            )
         }
     }
 }

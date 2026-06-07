@@ -16,6 +16,7 @@ object CapturePrompt {
             可选地先用它判断：当前内容是否与既有笔记明显重复？有没有主题相关的旧笔记？
             - 若与某条已有笔记明显重复，可直接 keep=false，并在 reason 注明"与已有笔记重复"。
             - 归类时优先复用检索到的既有分类，保持一致。
+            - 若检索到主题相关（但不重复）的旧笔记，把它们的 id 放进 related_note_ids 建立关联。
             用完工具（或不需要用）后，再输出最终 JSON。
         """.trimIndent().let { "\n$it" }
         return """
@@ -46,7 +47,8 @@ object CapturePrompt {
               "summary": "一句话总结这屏的内容主体",
               "key_points": ["内容要点，知识密集就拆细，信息稀薄就少写或不写"],
               "category": "分类名",
-              "tags": ["标签列表"]
+              "tags": ["标签列表"],
+              "related_note_ids": ["可选：search_similar 命中的相关旧笔记 id"]
             }
             默认 keep=true（用户主动截的就为他总结）；仅当纯加载中 / 空白页 / 桌面无内容时 keep=false。
         """.trimIndent()

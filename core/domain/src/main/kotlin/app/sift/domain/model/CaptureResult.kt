@@ -11,8 +11,11 @@ data class CaptureRequest(
 
 /** Agent 处理一次截图的结果。 */
 sealed interface CaptureResult {
-    /** 判定为有价值的知识，已生成笔记。 */
-    data class Kept(val note: KnowledgeNote) : CaptureResult
+    /** 判定为有价值的知识，已生成笔记。relatedNoteIds 为 agent 认为相关的既有笔记 id。 */
+    data class Kept(
+        val note: KnowledgeNote,
+        val relatedNoteIds: List<String> = emptyList(),
+    ) : CaptureResult
 
     /** 判定为纯娱乐 / 无沉淀价值，主动丢弃 —— 这是 agent "会拒绝"的体现。 */
     data class Discarded(val reason: String) : CaptureResult
