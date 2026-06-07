@@ -1,0 +1,39 @@
+# Gradle
+.gradle/
+build/
+captures/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+local.properties
+
+# Android build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Keystore / signing — 绝不进仓库
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Secrets — 用户 Key 走设备加密存储；任何本地密钥文件挡掉
+*.local.properties
+secrets.properties
+api_keys.txt
+
+# Native
+.cxx/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Logs
+*.log
