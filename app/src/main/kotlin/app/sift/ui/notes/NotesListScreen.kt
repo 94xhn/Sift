@@ -20,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.sift.domain.repository.NoteRepository
+import app.sift.ui.components.SiftScaffold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -41,37 +42,45 @@ fun NotesListScreen(
 ) {
     val notes by vm.notes.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Text("我的知识笔记（${notes.size}）", style = MaterialTheme.typography.headlineSmall)
+    SiftScaffold(title = "我的知识笔记（${notes.size}）", onBack = onBack) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            if (notes.isEmpty()) {
+                Text(
+                    "还没有沉淀。开启悬浮球，刷到好内容点一下就会出现在这里。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
 
-        if (notes.isEmpty()) {
-            Text(
-                "还没有沉淀。开启悬浮球，刷到好内容点一下就会出现在这里。",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(notes, key = { it.id }) { note ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onOpenNote(note.id) },
-                ) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(note.title, style = MaterialTheme.typography.titleMedium)
-                        if (note.summary.isNotBlank()) {
-                            Text(note.summary, style = MaterialTheme.typography.bodyMedium)
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp),
+            ) {
+                items(notes, key = { it.id }) { note ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenNote(note.id) },
+                    ) {
+                        Column(
+                            Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(note.title, style = MaterialTheme.typography.titleMedium)
+                            if (note.summary.isNotBlank()) {
+                                Text(note.summary, style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Text(
+                                "${note.category}${if (note.sourceApp != null) " · ${note.sourceApp}" else ""}",
+                                style = MaterialTheme.typography.labelSmall,
+                            )
                         }
-                        Text(
-                            "${note.category}${if (note.sourceApp != null) " · ${note.sourceApp}" else ""}",
-                            style = MaterialTheme.typography.labelSmall,
-                        )
                     }
                 }
             }

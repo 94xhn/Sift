@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.sift.domain.repository.SettingsRepository
+import app.sift.ui.components.SiftScaffold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -63,49 +63,48 @@ fun SettingsScreen(
     onBack: () -> Unit,
     vm: SettingsViewModel = hiltViewModel(),
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text("API 设置", style = MaterialTheme.typography.headlineSmall)
-        Text(
-            "自带 Key。任何 OpenAI 兼容服务都行（OpenAI / DeepSeek / Moonshot / 本地 Ollama / 中转），" +
-                "靠 Base URL 区分。模型需支持图片输入（多模态）。",
-            style = MaterialTheme.typography.bodySmall,
-        )
+    SiftScaffold(title = "API 设置", onBack = onBack) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                "自带 Key。任何 OpenAI 兼容服务都行，靠 Base URL 区分。" +
+                    "模型必须支持图片输入（多模态）。推荐免费的智谱 GLM-4.6V-Flash。",
+                style = MaterialTheme.typography.bodySmall,
+            )
 
-        OutlinedTextField(
-            value = vm.baseUrl,
-            onValueChange = vm::onBaseUrl,
-            label = { Text("Base URL") },
-            placeholder = { Text("https://api.openai.com/v1") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = vm.model,
-            onValueChange = vm::onModel,
-            label = { Text("模型名") },
-            placeholder = { Text("gpt-4o-mini") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = vm.apiKey,
-            onValueChange = vm::onApiKey,
-            label = { Text("API Key") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-        )
+            OutlinedTextField(
+                value = vm.baseUrl,
+                onValueChange = vm::onBaseUrl,
+                label = { Text("Base URL") },
+                placeholder = { Text("https://open.bigmodel.cn/api/paas/v4") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = vm.model,
+                onValueChange = vm::onModel,
+                label = { Text("模型名（需多模态）") },
+                placeholder = { Text("glm-4.6v-flash") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = vm.apiKey,
+                onValueChange = vm::onApiKey,
+                label = { Text("API Key") },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+            )
 
-        Button(onClick = vm::save, modifier = Modifier.fillMaxWidth()) {
-            Text(if (vm.saved) "已保存 ✓" else "保存")
-        }
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("返回")
+            Button(onClick = vm::save, modifier = Modifier.fillMaxWidth()) {
+                Text(if (vm.saved) "已保存 ✓" else "保存")
+            }
         }
     }
 }

@@ -2,13 +2,18 @@ package app.sift.ui.notes
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,8 +27,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.sift.domain.model.KnowledgeNote
 import app.sift.domain.repository.NoteRepository
+import app.sift.ui.components.SiftScaffold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,8 +52,16 @@ class NoteDetailViewModel @Inject constructor(
             if (note != null) repo.markReviewed(id, System.currentTimeMillis())
         }
     }
+
+    fun delete(onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            if (id.isNotEmpty()) repo.delete(id)
+            onDeleted()
+        }
+    }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NoteDetailScreen(
     onBack: () -> Unit,
@@ -52,37 +69,63 @@ fun NoteDetailScreen(
 ) {
     val note = vm.note
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        if (note == null) {
-            Text("笔记不存在或已删除", style = MaterialTheme.typography.bodyLarge)
-        } else {
+    SiftScaffold(
+        title = "笔记",
+        onBack = onBack,
+        actions = {
+            if (note != null) {
+                IconButton(onClick = { vm.delete(onBack) }) {
+                    Icon(Icons.Default.Delete, contentDescription = "删除")
+                }
+            }
+        },
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (note == null) {
+                Text("笔记不存在或已删除", style = MaterialTheme.typography.bodyLarge)
+                return@Column
+            }
+
             Text(note.title, style = MaterialTheme.typography.headlineSmall)
-            Text(
-                "${note.category}${if (note.sourceApp != null) " · 来自 ${note.sourceApp}" else ""}",
-                style = MaterialTheme.typography.labelMedium,
-            )
+
+            val meta = buildString {
+                append(formatTime(note.createdAt))
+                append(" · ")
+                append(note.category)
+                note.sourceApp?.let { append(" · 来自 $it") }
+            }
+            Text(meta, style = MaterialTheme.typography.labelMedium)
+
             if (note.summary.isNotBlank()) {
                 Text(note.summary, style = MaterialTheme.typography.bodyLarge)
             }
+
             if (note.keyPoints.isNotEmpty()) {
                 Text("知识点", style = MaterialTheme.typography.titleMedium)
                 note.keyPoints.forEach { point ->
                     Text("• $point", style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            if (note.tags.isNotEmpty()) {
-                Text("标签：${note.tags.joinToString("、")}", style = MaterialTheme.typography.labelMedium)
-            }
-        }
 
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("返回")
+            if (note.tags.isNotEmpty()) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    note.tags.forEach { tag ->
+                        AssistChip(onClick = {}, label = { Text(tag) })
+                    }
+                }
+            }
         }
     }
 }
+
+private fun formatTime(epochMillis: Long): String =
+    Instant.ofEpochMilli(epochMillis)
+        .atZone(ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))

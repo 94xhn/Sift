@@ -27,6 +27,7 @@ import app.sift.domain.dashboard.HonestNudge
 import app.sift.domain.model.DailyUsage
 import app.sift.domain.repository.NoteRepository
 import app.sift.domain.repository.UsageRepository
+import app.sift.ui.components.SiftScaffold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -88,14 +89,14 @@ fun DashboardScreen(
     val context = LocalContext.current
     val s by vm.state.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Text("今天", style = MaterialTheme.typography.headlineSmall)
-
+    SiftScaffold(title = "今天", onBack = onBack) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
         // 诚实提示——这一行是整个 App 的灵魂
         Card(Modifier.fillMaxWidth()) {
             Text(
@@ -137,8 +138,6 @@ fun DashboardScreen(
             style = MaterialTheme.typography.bodySmall,
         )
 
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("返回")
         }
     }
 }

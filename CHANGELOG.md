@@ -17,6 +17,8 @@
 - 运行时申请 POST_NOTIFICATIONS（否则结果通知/Toast 被静默吞掉）；悬浮球加 2s 防抖避免撞免费档限流；OkHttp 读/写超时放宽到 60s（视觉模型慢）；捕获管线加 Logcat 日志（tag SiftCapture）。
 - 体验打磨：截图前自动隐藏悬浮球（抓"下一帧"无球的新鲜帧，静止画面 400ms 兜底用缓存）；主屏显示"最近捕获结果"卡片（通知被吞也能看到）。
 - CI：GitHub Actions（domain 单测 + gitleaks），README 加 CI / MIT 徽章。
+- 提示词升级：明确忽略状态栏/导航栏/平台 logo 等界面家具，只总结内容主体；按"知识密度"调整详略（知识密集多抽要点，信息稀薄不硬凑）。
+- UI 统一：全 App 改用原生顶栏返回箭头（`SiftScaffold`），去掉底部"返回"大按钮；笔记详情页标签改 Chip + 显示时间/来源 + 删除按钮；设置页占位符改为推荐的免费 GLM-4.6V-Flash。
 
 ### Fixed
 - `:core:domain` 模块 Kotlin/Java target 不一致（21 vs 17）导致编译失败：显式设 Kotlin `jvmTarget = 17`。
