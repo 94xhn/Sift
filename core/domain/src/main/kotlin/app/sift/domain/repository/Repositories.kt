@@ -28,6 +28,9 @@ interface NoteRepository {
     // 知识图谱（v0.2 起用）
     suspend fun addRelation(relation: NoteRelation)
     suspend fun relationsOf(noteId: String): List<NoteRelation>
+
+    /** 全部关联边（供知识图谱可视化）。 */
+    suspend fun allRelations(): List<NoteRelation>
 }
 
 /** 使用统计仓库，"数据说话"仪表盘的数据源。 */
@@ -47,5 +50,11 @@ interface SettingsRepository {
     /** 嵌入模型名（语义检索用）。默认智谱 embedding-3。 */
     suspend fun getEmbeddingModel(): String
     suspend fun getApiKey(): String?
-    suspend fun save(providerId: String, baseUrl: String, model: String, apiKey: String)
+    suspend fun save(
+        providerId: String,
+        baseUrl: String,
+        model: String,
+        embeddingModel: String,
+        apiKey: String,
+    )
 }

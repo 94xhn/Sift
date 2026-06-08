@@ -53,6 +53,7 @@ fun HomeScreen(
     onOpenNotes: () -> Unit,
     onOpenDashboard: () -> Unit,
     onOpenReport: () -> Unit,
+    onOpenGraph: () -> Unit,
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -149,6 +150,10 @@ fun HomeScreen(
 
         OutlinedButton(onClick = onOpenReport, modifier = Modifier.fillMaxWidth()) {
             Text("生成本周周报")
+        }
+
+        OutlinedButton(onClick = onOpenGraph, modifier = Modifier.fillMaxWidth()) {
+            Text("知识图谱")
         }
     }
 }

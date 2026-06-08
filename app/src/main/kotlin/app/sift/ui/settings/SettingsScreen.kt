@@ -33,6 +33,8 @@ class SettingsViewModel @Inject constructor(
         private set
     var model by mutableStateOf("")
         private set
+    var embeddingModel by mutableStateOf("")
+        private set
     var apiKey by mutableStateOf("")
         private set
     var saved by mutableStateOf(false)
@@ -42,17 +44,25 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             baseUrl = settings.getBaseUrl()
             model = settings.getModel()
+            embeddingModel = settings.getEmbeddingModel()
             apiKey = settings.getApiKey().orEmpty()
         }
     }
 
     fun onBaseUrl(v: String) { baseUrl = v; saved = false }
     fun onModel(v: String) { model = v; saved = false }
+    fun onEmbeddingModel(v: String) { embeddingModel = v; saved = false }
     fun onApiKey(v: String) { apiKey = v; saved = false }
 
     fun save() {
         viewModelScope.launch {
-            settings.save("openai-compatible", baseUrl.trim(), model.trim(), apiKey.trim())
+            settings.save(
+                providerId = "openai-compatible",
+                baseUrl = baseUrl.trim(),
+                model = model.trim(),
+                embeddingModel = embeddingModel.trim(),
+                apiKey = apiKey.trim(),
+            )
             saved = true
         }
     }
@@ -90,6 +100,14 @@ fun SettingsScreen(
                 onValueChange = vm::onModel,
                 label = { Text("模型名（需多模态）") },
                 placeholder = { Text("glm-4.6v-flash") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = vm.embeddingModel,
+                onValueChange = vm::onEmbeddingModel,
+                label = { Text("嵌入模型（语义检索用）") },
+                placeholder = { Text("embedding-3") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )

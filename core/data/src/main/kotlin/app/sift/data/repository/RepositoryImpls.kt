@@ -71,6 +71,9 @@ class NoteRepositoryImpl @Inject constructor(
     override suspend fun addRelation(relation: NoteRelation) = dao.addRelation(relation.toEntity())
     override suspend fun relationsOf(noteId: String): List<NoteRelation> =
         dao.relationsOf(noteId).map { it.toDomain() }
+
+    override suspend fun allRelations(): List<NoteRelation> =
+        dao.allRelations().map { it.toDomain() }
 }
 
 @Singleton
@@ -136,11 +139,18 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun getApiKey(): String? = prefs.getString(KEY_API_KEY, null)
 
-    override suspend fun save(providerId: String, baseUrl: String, model: String, apiKey: String) {
+    override suspend fun save(
+        providerId: String,
+        baseUrl: String,
+        model: String,
+        embeddingModel: String,
+        apiKey: String,
+    ) {
         prefs.edit()
             .putString(KEY_PROVIDER, providerId)
             .putString(KEY_BASE_URL, baseUrl)
             .putString(KEY_MODEL, model)
+            .putString(KEY_EMBEDDING_MODEL, embeddingModel)
             .putString(KEY_API_KEY, apiKey)
             .apply()
         configured.value = isConfigured()

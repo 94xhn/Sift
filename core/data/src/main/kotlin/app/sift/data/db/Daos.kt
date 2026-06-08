@@ -54,6 +54,9 @@ interface NoteDao {
 
     @Query("SELECT * FROM note_relations WHERE fromNoteId = :id OR toNoteId = :id")
     suspend fun relationsOf(id: String): List<NoteRelationEntity>
+
+    @Query("SELECT * FROM note_relations")
+    suspend fun allRelations(): List<NoteRelationEntity>
 }
 
 @Dao

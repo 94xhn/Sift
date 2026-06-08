@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import app.sift.ui.dashboard.DashboardScreen
+import app.sift.ui.graph.GraphScreen
 import app.sift.ui.home.HomeScreen
 import app.sift.ui.notes.NoteDetailScreen
 import app.sift.ui.notes.NotesListScreen
@@ -18,6 +19,7 @@ private object Routes {
     const val NOTE_DETAIL = "note/{id}"
     const val DASHBOARD = "dashboard"
     const val REPORT = "report"
+    const val GRAPH = "graph"
     fun noteDetail(id: String) = "note/$id"
 }
 
@@ -31,6 +33,7 @@ fun SiftNavHost() {
                 onOpenNotes = { nav.navigate(Routes.NOTES) },
                 onOpenDashboard = { nav.navigate(Routes.DASHBOARD) },
                 onOpenReport = { nav.navigate(Routes.REPORT) },
+                onOpenGraph = { nav.navigate(Routes.GRAPH) },
             )
         }
         composable(Routes.DASHBOARD) {
@@ -38,6 +41,12 @@ fun SiftNavHost() {
         }
         composable(Routes.REPORT) {
             ReportScreen(onBack = { nav.popBackStack() })
+        }
+        composable(Routes.GRAPH) {
+            GraphScreen(
+                onBack = { nav.popBackStack() },
+                onOpenNote = { id -> nav.navigate(Routes.noteDetail(id)) },
+            )
         }
         composable(Routes.SETTINGS) {
             SettingsScreen(onBack = { nav.popBackStack() })
