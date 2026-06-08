@@ -30,6 +30,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE embedding IS NOT NULL")
     suspend fun allWithEmbedding(): List<NoteEntity>
 
+    @Query("SELECT * FROM notes WHERE createdAt >= :since ORDER BY createdAt DESC")
+    suspend fun notesSince(since: Long): List<NoteEntity>
+
     @Query("SELECT DISTINCT category FROM notes WHERE category != '' ORDER BY category")
     suspend fun categories(): List<String>
 

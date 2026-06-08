@@ -65,6 +65,9 @@ class NoteRepositoryImpl @Inject constructor(
     override suspend fun updateEmbedding(id: String, vector: FloatArray) =
         dao.updateEmbedding(id, vector.toBytes())
 
+    override suspend fun notesSince(epochMillis: Long): List<KnowledgeNote> =
+        dao.notesSince(epochMillis).map { it.toDomain() }
+
     override suspend fun addRelation(relation: NoteRelation) = dao.addRelation(relation.toEntity())
     override suspend fun relationsOf(noteId: String): List<NoteRelation> =
         dao.relationsOf(noteId).map { it.toDomain() }

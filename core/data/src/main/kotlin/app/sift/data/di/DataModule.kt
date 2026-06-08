@@ -15,6 +15,7 @@ import app.sift.domain.agent.CaptureAgent
 import app.sift.domain.agent.SearchSimilarTool
 import app.sift.domain.agent.SiftJson
 import app.sift.domain.agent.Tool
+import app.sift.domain.agent.WeeklyReportAgent
 import app.sift.domain.llm.LLMProvider
 import app.sift.domain.repository.NoteRepository
 import app.sift.domain.repository.SettingsRepository
@@ -86,6 +87,10 @@ object DataModule {
         tools: List<@JvmSuppressWildcards Tool>,
         json: Json,
     ): CaptureAgent = CaptureAgent(clock = clock, idProvider = idProvider, tools = tools, json = json)
+
+    @Provides
+    @Singleton
+    fun provideWeeklyReportAgent(): WeeklyReportAgent = WeeklyReportAgent()
 }
 
 @Module

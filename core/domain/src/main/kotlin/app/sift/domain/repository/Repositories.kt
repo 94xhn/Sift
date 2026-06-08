@@ -22,6 +22,9 @@ interface NoteRepository {
     /** 写入某条笔记的 embedding 向量（RAG 语义检索用）。 */
     suspend fun updateEmbedding(id: String, vector: FloatArray)
 
+    /** 取自某时间点(epoch ms)以来创建的笔记，供周报 agent 汇总。 */
+    suspend fun notesSince(epochMillis: Long): List<KnowledgeNote>
+
     // 知识图谱（v0.2 起用）
     suspend fun addRelation(relation: NoteRelation)
     suspend fun relationsOf(noteId: String): List<NoteRelation>
